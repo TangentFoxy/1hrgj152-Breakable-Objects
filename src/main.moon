@@ -1,7 +1,15 @@
 math.randomseed os.time!
+version = "0.1.0"
+latest = "unknown, checking for updates..."
 
-import graphics, keyboard from love
+import graphics, keyboard, thread from love
 import random, cos, sin, atan2, min, max, sqrt, pi, floor, abs from math
+
+versionCheck = thread.newThread "lib/itchy/check.lua"
+versionCheckSend = thread.getChannel "send-itchy"
+versionCheckReceive = thread.getChannel "receive-itchy"
+versionCheck\start!
+versionCheckSend\push :version, target: "guard13007/asteroid-dodge", interval: 5*60, send_interval_errors: false -- doesn't actually need to be specified
 
 hw, hh = graphics.getWidth! / 2, graphics.getHeight! / 2
 spawnDistance = 100 + 2 * max hw, hh
@@ -67,9 +75,10 @@ class Ship
     -- debug
     graphics.setColor 255, 255, 255, 200
     debugX = @x - hw + 5
-    debugY = @y - hh + 2
-    graphics.print "Asteroids: #{#objects - 1}", debugX, debugY + 11
+    debugY = @y - hh - 5
+    graphics.print "Version: #{version} Latest: #{latest}", debugX, debugY + 11
     graphics.print "FPS: #{love.timer.getFPS!}", debugX, debugY + 22
+    graphics.print "Asteroids: #{#objects - 1}", debugX, debugY + 33
 
 ship = Ship!
 
@@ -102,6 +111,9 @@ love.load = ->
 
 timing = 0
 love.update = (dt) ->
+  if versionCheckReceive\getCount! > 0
+    latest = versionCheckReceive\demand!
+
   timing += dt
   if timing >= 1
     timing -= 1
