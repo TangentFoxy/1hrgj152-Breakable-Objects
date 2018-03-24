@@ -2,8 +2,8 @@
 
 moonc ./src
 ./lp-build.sh
-source ./lp=config.sh
+source ./lp-config.sh
 
-butler push "$outputDir/$packageName-${version}_win32.zip" guard13007asteroid-dodge:win32 --userversion ${version}
-butler push "$outputDir/$packageName-${version}_osx.zip" guard13007asteroid-dodge:osx --userversion ${version}
-butler push "$outputDir/$packageName-${version}_linux.zip" guard13007asteroid-dodge:linux --userversion ${version}
+butler push "$outputDir/$packageName-${version}_win32.zip" guard13007/asteroid-dodge:win32 --userversion ${version}
+butler push "$outputDir/$packageName-${version}_osx.zip" guard13007/asteroid-dodge:osx --userversion ${version}
+butler push "$outputDir/$packageName-${version}_linux.zip" guard13007/asteroid-dodge:linux --userversion ${version}
