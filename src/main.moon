@@ -38,7 +38,8 @@ class Ship
   update: (dt) =>
     for i = 2, #objects
       object = objects[i]
-      if object.r + @r > distance object, @
+      object.distance = distance object, @
+      if object.r + @r > object.distance
         @hp -= dt
 
     if keyboard.isDown "w"
@@ -65,7 +66,7 @@ class Ship
     for i = 2, #objects
       object = objects[i]
       displayDistance = (spawnDistance - 500) / 2
-      if displayDistance < distance object, @
+      if displayDistance < object.distance
         angle = atan2 object.y - @y, object.x - @x
         x = @x + displayDistance * cos angle
         y = @y + displayDistance * sin angle
@@ -89,6 +90,7 @@ class Asteroid
     direction = random! * tau
     @x = ship.x + spawnDistance * cos direction
     @y = ship.y + spawnDistance * sin direction
+    @distance = distance ship, @
 
     speed = random! * 100 + 50
     variance = random! * heading_variance - heading_variance / 2
@@ -125,7 +127,7 @@ love.update = (dt) ->
   i = 2
   while i <= #objects
     object = objects[i]
-    if spawnDistance * 2 < distance ship, object
+    if spawnDistance * 2 < object.distance
       table.remove objects, i
     else
       i += 1
