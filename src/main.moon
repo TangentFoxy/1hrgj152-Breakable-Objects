@@ -13,6 +13,7 @@ versionCheckSend\push :version, target: "guard13007/asteroid-dodge", interval: 5
 
 hw, hh = graphics.getWidth! / 2, graphics.getHeight! / 2
 spawnDistance = 100 + 2 * max hw, hh
+displayDistance = (spawnDistance - 500) / 2
 maxAsteroids = 1
 tau = pi * 2
 heading_variance = pi / 7
@@ -39,6 +40,7 @@ class Ship
     for i = 2, #objects
       object = objects[i]
       object.distance = distance object, @
+
       if object.r + @r > object.distance
         @hp -= dt
 
@@ -58,28 +60,26 @@ class Ship
     graphics.setColor 0, 255, 0, 255
     graphics.circle "line", @x, @y, @r
 
+    left = @x - hw + 5
     graphics.setColor 255, 255, 255, 255
-    graphics.print "Hull: #{floor @hp}", @x, @y + 11
-    graphics.print "Velocity: #{abs floor sqrt @vx * @vx + @vy * @vy}", @x, @y + 22
+    graphics.print "Hull: #{floor @hp}", left, @y + 11
+    graphics.print "Velocity: #{abs floor sqrt @vx * @vx + @vy * @vy}", left, @y + 22
 
     graphics.setColor 255, 200, 0, 255
     for i = 2, #objects
       object = objects[i]
-      displayDistance = (spawnDistance - 500) / 2
       if displayDistance < object.distance
         angle = atan2 object.y - @y, object.x - @x
         x = @x + displayDistance * cos angle
         y = @y + displayDistance * sin angle
         graphics.circle "fill", x, y, 2
-        graphics.line x, y, x + object.vx / 3, y + object.vy / 3
+        graphics.line x, y, x + (object.vx - @vx) / 3, y + (object.vy - @vy) / 3
 
-    -- debug
-    graphics.setColor 255, 255, 255, 200
-    debugX = @x - hw + 5
     debugY = @y - hh - 5
-    graphics.print "Version: #{version} Latest: #{latest}", debugX, debugY + 11
-    graphics.print "FPS: #{love.timer.getFPS!}", debugX, debugY + 22
-    graphics.print "Asteroids: #{#objects - 1}", debugX, debugY + 33
+    graphics.setColor 255, 255, 255, 200
+    graphics.print "Version: #{version} Latest: #{latest}", left, debugY + 11
+    graphics.print "FPS: #{love.timer.getFPS!}", left, debugY + 22
+    graphics.print "Asteroids: #{#objects - 1}", left, debugY + 33
 
 ship = Ship!
 
