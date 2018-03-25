@@ -4,6 +4,7 @@ latest = "unknown, checking for updates..."
 
 Gamestate = require "lib.gamestate"
 pause = require "states.pause"
+gameover = require "states.gameover"
 
 import graphics, keyboard, thread from love
 import random, cos, sin, atan2, min, max, sqrt, pi, floor, abs from math
@@ -22,7 +23,7 @@ maxAsteroids = 1
 tau = pi * 2
 heading_variance = pi / 7
 
-objects = {}
+local ship, target, objects
 
 distance = (A, B) ->
   dx = A.x - B.x
@@ -54,7 +55,8 @@ class Ship
         dvx = @vx - object.vx
         dvy = @vy - object.vy
         @hp -= dt * (object.r / 16) * sqrt(dvx * dvx + dvy * dvy) / 1.2
-        -- TODO use current_score for final death message
+        Gamestate.switch gameover, @total_score + @current_score
+        return
 
     if keyboard.isDown "w"
       @vy -= @@acceleration * dt
@@ -121,8 +123,6 @@ class Ship
     graphics.print "FPS: #{love.timer.getFPS!}", left, debugY + 24
     graphics.print "Asteroids: #{#objects - 1}", left, debugY + 36
 
-ship = Ship!
-
 class Asteroid
   new: =>
     @r = random! * 8 + 8
@@ -145,7 +145,6 @@ class Asteroid
     graphics.setColor 255, 0, 0, 255
     graphics.circle "line", @x, @y, @r
 
-local target
 class Target
   segment: tau / 40
 
@@ -176,11 +175,13 @@ class Target
       y += 10 * yn
       graphics.line x, y, x2, y2
 
-target = Target!
-
 game = {}
 
-game.init = =>
+game.enter = =>
+  ship = Ship!
+  target = Target!
+  objects = {}
+
   table.insert objects, ship
 
   for i = 1, maxAsteroids
