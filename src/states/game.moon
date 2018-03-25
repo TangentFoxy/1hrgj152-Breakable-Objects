@@ -13,7 +13,7 @@ versionCheck = thread.newThread "lib/itchy/check.lua"
 versionCheckSend = thread.getChannel "send-itchy"
 versionCheckReceive = thread.getChannel "receive-itchy"
 versionCheck\start!
-versionCheckSend\push :version, target: "guard13007/asteroid-dodge", interval: 5*60, send_interval_errors: false -- doesn't actually need to be specified
+versionCheckSend\push :version, target: "guard13007/asteroid-dodge", interval: 5*60
 
 time, timing = 0, 0
 hw, hh = graphics.getWidth! / 2, graphics.getHeight! / 2
@@ -189,7 +189,7 @@ game.enter = =>
 
 game.update = (dt) =>
   if versionCheckReceive\getCount! > 0
-    latest = versionCheckReceive\demand!
+    latest = versionCheckReceive\demand!.message
 
   time += dt
   timing += dt
