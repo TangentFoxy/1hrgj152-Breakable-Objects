@@ -112,6 +112,7 @@ class Ship
     graphics.print "Asteroids: #{#objects - 1}", left, debugY + 36
 
 ship = Ship!
+camera = { x: ship.x, y: ship.y }
 
 class Asteroid
   new: =>
@@ -167,8 +168,11 @@ love.update = (dt) ->
     for i = 1, maxAsteroids - #objects + 1
       table.insert objects, Asteroid!
 
+  camera.x += (ship.x - camera.x) / 2
+  camera.y += (ship.y - camera.y) / 2
+
 love.draw = ->
-  graphics.translate hw - ship.x, hh - ship.y
+  graphics.translate hw - camera.x, hh - camera.y
 
   for object in *objects
     object\draw!
