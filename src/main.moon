@@ -65,15 +65,28 @@ class Ship
     graphics.print "Hull: #{floor @hp}", left, @y + 11
     graphics.print "Velocity: #{abs floor sqrt @vx * @vx + @vy * @vy}", left, @y + 22
 
-    graphics.setColor 255, 200, 0, 255
+    vectors = {}
     for i = 2, #objects
       object = objects[i]
       if displayDistance < object.distance
         angle = atan2 object.y - @y, object.x - @x
         x = @x + displayDistance * cos angle
         y = @y + displayDistance * sin angle
-        graphics.circle "fill", x, y, 2
-        graphics.line x, y, x + (object.vx - @vx) / 3, y + (object.vy - @vy) / 3
+        table.insert vectors, {
+          :angle, :x, :y, x2: x + (object.vx - @vx) / 3, y2: y + (object.vy - @vy) / 3
+        }
+
+    graphics.setColor 255, 200, 0, 255
+    for vector in *vectors
+      graphics.line vector.x, vector.y, vector.x2, vector.y2
+
+    graphics.setColor 0, 0, 0, 255
+    for vector in *vectors
+      graphics.rectangle "fill", vector.x - 3, vector.y - 3, 6, 6
+
+    graphics.setColor 255, 200, 0, 255
+    for vector in *vectors
+      graphics.rectangle "line", vector.x - 3, vector.y - 3, 6, 6
 
     debugY = @y - hh - 5
     graphics.setColor 255, 255, 255, 200
