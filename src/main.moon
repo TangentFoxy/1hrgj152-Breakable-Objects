@@ -59,6 +59,9 @@ class Ship
   draw: =>
     graphics.setColor 0, 255, 0, 255
     graphics.circle "line", @x, @y, @r
+    angle = atan2 @vy, @vx
+    magnitude = min 175, sqrt(@vx * @vx + @vy * @vy) / 3
+    graphics.line @x, @y, @x + magnitude * cos(angle), @y + magnitude * sin(angle)
 
     left = @x - hw + 5
     graphics.setColor 255, 255, 255, 255
