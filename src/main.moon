@@ -71,7 +71,7 @@ class Ship
     graphics.setColor 255, 255, 255, 255
     graphics.print "Hull: #{floor @hp}", left, @y + 11
     graphics.print "Velocity: #{abs floor @speed}", left, @y + 22
-    -- graphics.print "Score: #{@speed / time}", left, @y + 33
+    graphics.print "Score: #{@speed / 500 * (@speed / time) * (@hp / 100)}", left, @y + 33
 
     vectors = {}
     for i = 2, #objects
