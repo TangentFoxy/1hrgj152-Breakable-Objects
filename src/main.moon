@@ -11,6 +11,7 @@ versionCheckReceive = thread.getChannel "receive-itchy"
 versionCheck\start!
 versionCheckSend\push :version, target: "guard13007/asteroid-dodge", interval: 5*60, send_interval_errors: false -- doesn't actually need to be specified
 
+time, timing = 0, 0
 hw, hh = graphics.getWidth! / 2, graphics.getHeight! / 2
 spawnDistance = 100 + 2 * max hw, hh
 displayDistance = (spawnDistance - 500) / 2
@@ -35,8 +36,11 @@ class Ship
     @y = 0
     @vx = 0
     @vy = 0
+    @speed = 0
 
   update: (dt) =>
+    @speed = sqrt @vx * @vx + @vy * @vy
+
     for i = 2, #objects
       object = objects[i]
       object.distance = distance object, @
@@ -60,24 +64,26 @@ class Ship
     graphics.setColor 0, 255, 0, 255
     graphics.circle "line", @x, @y, @r
     angle = atan2 @vy, @vx
-    magnitude = min 175, sqrt(@vx * @vx + @vy * @vy) / 3
+    magnitude = min 175, @speed / 3
     graphics.line @x, @y, @x + magnitude * cos(angle), @y + magnitude * sin(angle)
 
     left = @x - hw + 5
     graphics.setColor 255, 255, 255, 255
     graphics.print "Hull: #{floor @hp}", left, @y + 11
-    graphics.print "Velocity: #{abs floor sqrt @vx * @vx + @vy * @vy}", left, @y + 22
+    graphics.print "Velocity: #{abs floor @speed}", left, @y + 22
+    -- graphics.print "Score: #{@speed / time}", left, @y + 33
 
     vectors = {}
     for i = 2, #objects
       object = objects[i]
       if displayDistance < object.distance
-        angle = atan2 object.y - @y, object.x - @x
-        x = @x + displayDistance * cos angle
-        y = @y + displayDistance * sin angle
-        table.insert vectors, {
-          :angle, :x, :y, x2: x + (object.vx - @vx) / 3, y2: y + (object.vy - @vy) / 3
-        }
+        if object.distance > distance { x: @x + @vx, y: @y + @vy }, { x: object.x + object.vx, y: object.y + object.vy }
+          angle = atan2 object.y - @y, object.x - @x
+          x = @x + displayDistance * cos angle
+          y = @y + displayDistance * sin angle
+          table.insert vectors, {
+            :angle, :x, :y, x2: x + (object.vx - @vx) / 3, y2: y + (object.vy - @vy) / 3
+          }
 
     graphics.setColor 255, 200, 0, 255
     for vector in *vectors
@@ -127,11 +133,11 @@ love.load = ->
   for i = 1, maxAsteroids
     table.insert objects, Asteroid!
 
-timing = 0
 love.update = (dt) ->
   if versionCheckReceive\getCount! > 0
     latest = versionCheckReceive\demand!
 
+  time += dt
   timing += dt
   if timing >= 1
     timing -= 1
