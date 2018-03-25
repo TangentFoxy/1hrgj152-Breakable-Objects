@@ -1,2 +1,3 @@
 builds/
 *.lua
+!src/lib/gamestate.lua
