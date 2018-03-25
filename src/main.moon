@@ -1,5 +1,5 @@
 math.randomseed os.time!
-version = "0.1.0"
+version = "0.2.0"
 latest = "unknown, checking for updates..."
 
 import graphics, keyboard, thread from love
