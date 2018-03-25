@@ -46,7 +46,9 @@ class Ship
       object.distance = distance object, @
 
       if object.r + @r > object.distance
-        @hp -= dt
+        dvx = @vx - object.vx
+        dvy = @vy - object.vy
+        @hp -= dt * (object.r / 16) * sqrt(dvx * dvx + dvy * dvy) / 1.2
 
     if keyboard.isDown "w"
       @vy -= @@acceleration * dt
@@ -61,29 +63,29 @@ class Ship
     @y += @vy * dt
 
   draw: =>
-    graphics.setColor 0, 255, 0, 255
-    graphics.circle "line", @x, @y, @r
-    angle = atan2 @vy, @vx
-    magnitude = min 175, @speed / 3
-    graphics.line @x, @y, @x + magnitude * cos(angle), @y + magnitude * sin(angle)
-
     left = @x - hw + 5
     graphics.setColor 255, 255, 255, 255
-    graphics.print "Hull: #{floor @hp}", left, @y + 11
-    graphics.print "Velocity: #{abs floor @speed}", left, @y + 22
-    graphics.print "Score: #{@speed / 500 * (@speed / time) * (@hp / 100)}", left, @y + 33
+    graphics.print "Hull: #{floor @hp}", left, @y + 12
+    graphics.print "Velocity: #{abs floor @speed}", left, @y + 24
+    graphics.print "Score: #{floor @speed / 100 * (@speed / time) * (@hp / 100) * 1.2}", left, @y + 36
 
-    vectors = {}
+    vectors, boxes = {}, {}
     for i = 2, #objects
       object = objects[i]
       if displayDistance < object.distance
+        angle = atan2 object.y - @y, object.x - @x
+        x = @x + displayDistance * cos angle
+        y = @y + displayDistance * sin angle
         if object.distance > distance { x: @x + @vx, y: @y + @vy }, { x: object.x + object.vx, y: object.y + object.vy }
-          angle = atan2 object.y - @y, object.x - @x
-          x = @x + displayDistance * cos angle
-          y = @y + displayDistance * sin angle
           table.insert vectors, {
-            :angle, :x, :y, x2: x + (object.vx - @vx) / 3, y2: y + (object.vy - @vy) / 3
+            :x, :y, x2: x + (object.vx - @vx) / 3, y2: y + (object.vy - @vy) / 3
           }
+        else
+          table.insert boxes, :x, :y
+
+    graphics.setColor 255, 255, 255, 200
+    for box in *boxes
+      graphics.rectangle "line", box.x - 3, box.y - 3, 6, 6
 
     graphics.setColor 255, 200, 0, 255
     for vector in *vectors
@@ -97,11 +99,17 @@ class Ship
     for vector in *vectors
       graphics.rectangle "line", vector.x - 3, vector.y - 3, 6, 6
 
+    graphics.setColor 0, 255, 0, 255
+    graphics.circle "line", @x, @y, @r
+    angle = atan2 @vy, @vx
+    magnitude = min 175, @speed / 3
+    graphics.line @x, @y, @x + magnitude * cos(angle), @y + magnitude * sin(angle)
+
     debugY = @y - hh - 5
     graphics.setColor 255, 255, 255, 200
-    graphics.print "Version: #{version} Latest: #{latest}", left, debugY + 11
-    graphics.print "FPS: #{love.timer.getFPS!}", left, debugY + 22
-    graphics.print "Asteroids: #{#objects - 1}", left, debugY + 33
+    graphics.print "Version: #{version} Latest: #{latest}", left, debugY + 12
+    graphics.print "FPS: #{love.timer.getFPS!}", left, debugY + 24
+    graphics.print "Asteroids: #{#objects - 1}", left, debugY + 36
 
 ship = Ship!
 
