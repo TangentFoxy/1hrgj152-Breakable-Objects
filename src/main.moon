@@ -37,9 +37,11 @@ class Ship
     @vx = 0
     @vy = 0
     @speed = 0
+    @total_score = 0
 
   update: (dt) =>
     @speed = sqrt @vx * @vx + @vy * @vy
+    @current_score = max 0, floor @speed / 100 * (@speed / time) * (@hp / 100) * 1.2
 
     for i = 2, #objects
       object = objects[i]
@@ -49,6 +51,7 @@ class Ship
         dvx = @vx - object.vx
         dvy = @vy - object.vy
         @hp -= dt * (object.r / 16) * sqrt(dvx * dvx + dvy * dvy) / 1.2
+        -- TODO use current_score for final death message
 
     if keyboard.isDown "w"
       @vy -= @@acceleration * dt
@@ -66,8 +69,9 @@ class Ship
     left = @x - hw + 5
     graphics.setColor 255, 255, 255, 255
     graphics.print "Hull: #{floor @hp}", left, @y + 12
-    graphics.print "Velocity: #{abs floor @speed}", left, @y + 24
-    graphics.print "Score: #{floor @speed / 100 * (@speed / time) * (@hp / 100) * 1.2}", left, @y + 36
+    graphics.print "Score: #{@total_score} (+#{@current_score})", left, @y + 24
+    graphics.print "Velocity: #{abs floor @speed}", left, @y + 36
+    graphics.print "Pos(x/y): #{floor @x}/#{floor @y}", left, @y + 48
 
     vectors, boxes = {}, {}
     for i = 2, #objects
@@ -100,10 +104,13 @@ class Ship
       graphics.rectangle "line", vector.x - 3, vector.y - 3, 6, 6
 
     graphics.setColor 0, 255, 0, 255
-    graphics.circle "line", @x, @y, @r
     angle = atan2 @vy, @vx
     magnitude = min 175, @speed / 3
     graphics.line @x, @y, @x + magnitude * cos(angle), @y + magnitude * sin(angle)
+    graphics.setColor 0, 0, 0, 255
+    graphics.circle "fill", @x, @y, @r
+    graphics.setColor 0, 255, 0, 255
+    graphics.circle "line", @x, @y, @r
 
     debugY = @y - hh - 5
     graphics.setColor 255, 255, 255, 200
@@ -135,6 +142,39 @@ class Asteroid
     graphics.setColor 255, 0, 0, 255
     graphics.circle "line", @x, @y, @r
 
+local target
+class Target
+  segment: tau / 40
+
+  new: =>
+    @x = random! * 10000
+    @y = random! * 10000
+    @r = random! * 40 + 80
+
+  update: =>
+    if @r > distance ship, @
+      ship.total_score += ship.current_score
+      time = 0
+      target = Target!
+
+  draw: =>
+    graphics.setColor 0, 200, 255, 255
+    for i = 1, 40
+      graphics.arc "line", "open", @x, @y, @r, @segment * i - @segment / 4, @segment * i + @segment / 4
+
+    angle = atan2 @y - ship.y, @x - ship.x
+    xn = cos angle
+    yn = sin angle
+    x = ship.x + 50 * xn
+    y = ship.y + 50 * yn
+    for i = 1, 25
+      x2, y2 = x + 5 * xn, y + 5 * yn
+      x += 10 * xn
+      y += 10 * yn
+      graphics.line x, y, x2, y2
+
+target = Target!
+
 love.load = ->
   table.insert objects, ship
 
@@ -154,6 +194,8 @@ love.update = (dt) ->
   for object in *objects
     object\update dt
 
+  target\update!
+
   i = 2
   while i <= #objects
     object = objects[i]
@@ -172,6 +214,8 @@ love.draw = ->
 
   for object in *objects
     object\draw!
+
+  target\draw!
 
 love.keypressed = (key) ->
   if key == "escape"
