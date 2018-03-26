@@ -1,3 +1,4 @@
+KeyConstants = require "lib.KeyConstants"
 Gamestate = require "lib.gamestate"
 
 import graphics, keyboard from love
@@ -43,7 +44,16 @@ gameover = {
 
   keypressed: (key) =>
     if @allow_keypress
-      Gamestate.switch @previous_state
+      accept_input = false
+      if key == "escape" or key == "pause"
+        accept_input = true
+      else
+        for keytype in *{"character", "numpad", "navigation", "editing"}
+          if KeyConstants[keytype][key]
+            accept_input = true
+            break
+      if accept_input
+        Gamestate.switch @previous_state
 }
 
 return gameover

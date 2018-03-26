@@ -1,3 +1,4 @@
+KeyConstants = require "lib.KeyConstants"
 Gamestate = require "lib.gamestate"
 
 import graphics, keyboard from love
@@ -39,7 +40,16 @@ pause = {
 
   keypressed: (key) =>
     if @allow_keypress
-      Gamestate.pop!
+      accept_input = false
+      if key == "escape" or key == "pause"
+        accept_input = true
+      else
+        for keytype in *{"character", "numpad", "navigation", "editing"}
+          if KeyConstants[keytype][key]
+            accept_input = true
+            break
+      if accept_input
+        Gamestate.pop!
 }
 
 return pause

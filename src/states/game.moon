@@ -1,5 +1,5 @@
 math.randomseed os.time!
-version = "0.3.0"
+version = "0.4.0"
 latest = "unknown, checking for updates..."
 
 Gamestate = require "lib.gamestate"
@@ -15,11 +15,10 @@ versionCheckReceive = thread.getChannel "receive-itchy"
 versionCheck\start!
 versionCheckSend\push :version, target: "guard13007/asteroid-dodge", interval: 5*60
 
-time, timing = 0, 0
+local time, timing, maxAsteroids
 hw, hh = graphics.getWidth! / 2, graphics.getHeight! / 2
 spawnDistance = 100 + 2 * max hw, hh
 displayDistance = (spawnDistance - 500) / 2
-maxAsteroids = 1
 tau = pi * 2
 heading_variance = pi / 7
 
@@ -31,7 +30,7 @@ distance = (A, B) ->
   return sqrt dx * dx + dy * dy
 
 class Ship
-  @acceleration: 50
+  @acceleration: 52
 
   new: =>
     @hp = 100
@@ -42,10 +41,14 @@ class Ship
     @vy = 0
     @speed = 0
     @total_score = 0
+    @current_score = 0
 
   update: (dt) =>
     @speed = sqrt @vx * @vx + @vy * @vy
-    @current_score = max 0, floor @speed / 100 * (@speed / time) * (@hp / 100) * 1.2
+    x = target.score_vector.vx + @vx
+    y = target.score_vector.vy + @vy
+    score_speed = sqrt x * x + y * y
+    @current_score = max 0, floor score_speed / 100 * (score_speed / time) * (@hp / 100) * 1.2
 
     for i = 2, #objects
       object = objects[i]
@@ -55,8 +58,6 @@ class Ship
         dvx = @vx - object.vx
         dvy = @vy - object.vy
         @hp -= dt * (object.r / 16) * sqrt(dvx * dvx + dvy * dvy) / 1.2
-        Gamestate.switch gameover, @total_score + @current_score
-        return
 
     if keyboard.isDown "w"
       @vy -= @@acceleration * dt
@@ -152,6 +153,7 @@ class Target
     @x = random! * 10000
     @y = random! * 10000
     @r = random! * 40 + 80
+    @score_vector = vx: -ship.vx, vy: -ship.vy
 
   update: =>
     if @r > distance ship, @
@@ -178,6 +180,8 @@ class Target
 game = {}
 
 game.enter = =>
+  time, timing, maxAsteroids = 0, 0, 1
+
   ship = Ship!
   target = Target!
   objects = {}
@@ -215,6 +219,9 @@ game.update = (dt) =>
     for i = 1, maxAsteroids - #objects + 1
       table.insert objects, Asteroid!
 
+  if ship.hp <= 0
+    Gamestate.switch gameover, ship.total_score + ship.current_score
+
 game.draw = =>
   graphics.translate hw - ship.x, hh - ship.y
 
@@ -224,7 +231,7 @@ game.draw = =>
   target\draw!
 
 game.keypressed = (key) =>
-  if key == "escape"
+  if key == "escape" or key == "pause" or key == "p"
     Gamestate.push pause
 
 return game
