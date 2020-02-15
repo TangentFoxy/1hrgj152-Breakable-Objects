@@ -1,6 +1,11 @@
 math.randomseed os.time!
-version = "0.4.0"
+version = "0.4.1"
 latest = "unknown, checking for updates..."
+itchy = require "lib.itchy.itchy"
+game_meta = {
+  :version, target: "tangentfox/asteroid-dodge", interval: 5*60
+}
+itchy\check_version game_meta
 
 Gamestate = require "lib.gamestate"
 pause = require "states.pause"
@@ -8,12 +13,6 @@ gameover = require "states.gameover"
 
 import graphics, keyboard, thread from love
 import random, cos, sin, atan2, min, max, sqrt, pi, floor, abs from math
-
-versionCheck = thread.newThread "lib/itchy/check.lua"
-versionCheckSend = thread.getChannel "send-itchy"
-versionCheckReceive = thread.getChannel "receive-itchy"
-versionCheck\start!
-versionCheckSend\push :version, target: "guard13007/asteroid-dodge", interval: 5*60
 
 local time, timing, maxAsteroids
 hw, hh = graphics.getWidth! / 2, graphics.getHeight! / 2
@@ -192,8 +191,9 @@ game.enter = =>
     table.insert objects, Asteroid!
 
 game.update = (dt) =>
-  if versionCheckReceive\getCount! > 0
-    latest = versionCheckReceive\demand!.message
+  result = itchy\new_version game_meta
+  if result and result.version
+    latest = result.version
 
   time += dt
   timing += dt
